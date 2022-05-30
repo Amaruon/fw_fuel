@@ -1,10 +1,8 @@
 from DbConnector import PostgresApi
 from tableClasses import MileageFuelEnd
-from CsvReader import CsvReader
 from datetime import timedelta
 import pandas as pd
 import random as rd
-import datetime
 
 
 def daterange(start_date, end_date):
@@ -77,6 +75,9 @@ def calculate_fuel_consumption():
 
     for index, line in transactions.iterrows():
         tank = db.fetch_tank_volume(line['car'])
+        if tank == 0:
+            continue
+
         fuel_start = db.fetch_fuel_end(line['car'])
         fuel_add = transactions.iat[index, 4]
         fuel_spent = rd.uniform(4.21, 5.76)
@@ -86,7 +87,9 @@ def calculate_fuel_consumption():
         while True:
             if tank <= fuel_start + fuel_add - fuel_spent:
                 diff = tank - fuel_start - fuel_add + fuel_spent
-                fuel_spent += rd.uniform(diff - 2.34, diff + 2.37)
+                low = diff - 2.34
+                up = diff + 2.37
+                fuel_spent += rd.uniform(low, up)
             else:
                 transactions.iat[index, 8] = fuel_spent
                 transactions.iat[index, 9] = fuel_start + fuel_add - fuel_spent
