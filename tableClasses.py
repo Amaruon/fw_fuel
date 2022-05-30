@@ -322,3 +322,119 @@ class FuelTransactions:
     @fuel.setter
     def fuel(self, value: str):
         self.__fuel = value
+
+
+class WayBill:
+    def __init__(self):
+        self.__card_number = None
+        self.__date = None
+        self.__entity = None
+        self.__fuel = None
+        self.__fuel_get = None
+        self.__driver = None
+        self.__car = None
+        self.__fuel_start = None
+        self.__fuel_spent = None
+        self.__fuel_end = None
+        self.__mileage_start = None
+        self.__mileage_spent = None
+        self.__mileage_end = None
+
+    @property
+    def card_number(self): return self.__card_number
+
+    @card_number.setter
+    def card_number(self, value):
+        self.__card_number = value
+
+    @property
+    def date(self): return self.__date
+
+    @date.setter
+    def date(self, value):
+        self.__date = value
+
+    @property
+    def entity(self): return self.__entity
+
+    @entity.setter
+    def entity(self, value):
+        self.__entity = value
+
+    @property
+    def fuel(self): return self.__fuel
+
+    @fuel.setter
+    def fuel(self, value):
+        self.__fuel = value
+
+    @property
+    def fuel_get(self): return self.__fuel_get
+
+    @fuel_get.setter
+    def fuel_get(self, value):
+        self.__fuel_get = value
+
+    @property
+    def driver(self): return self.__driver
+
+    @driver.setter
+    def driver(self, value):
+        self.__driver = value
+
+    @property
+    def car(self): return self.__car
+
+    @car.setter
+    def car(self, value):
+        self.__car = value
+
+    @property
+    def fuel_start(self): return self.__fuel_start
+
+    @fuel_start.setter
+    def fuel_start(self, value):
+        self.__fuel_start = value
+
+    @property
+    def fuel_spent(self): return self.__fuel_spent
+
+    @fuel_spent.setter
+    def fuel_spent(self, value):
+        self.__fuel_spent = value
+
+    @property
+    def fuel_end(self): return self.__fuel_end
+
+    @fuel_end.setter
+    def fuel_end(self, value):
+        self.__fuel_end = value
+
+    @property
+    def mileage_start(self): return self.__mileage_start
+
+    @mileage_start.setter
+    def mileage_start(self, value):
+        self.__mileage_start = value
+
+    @property
+    def mileage_spent(self): return self.__mileage_spent
+
+    @mileage_spent.setter
+    def mileage_spent(self, value):
+        self.__mileage_spent = value
+
+    @property
+    def mileage_end(self): return self.__mileage_end
+
+    @mileage_end.setter
+    def mileage_end(self, value):
+        self.__mileage_end = value
+
+
+class WayBillFill:
+    def __init__(self):
+        self.df = pd.DataFrame()
+
+    def fetch_from_db(self):
+        pass

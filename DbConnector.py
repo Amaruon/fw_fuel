@@ -148,7 +148,7 @@ class PostgresApi:
 
         df = self.db.fetch_query(f'''
             SELECT plate, rent_start, rent_end FROM rented_car
-            WHERE rent_end >= '{datetime.date(2022, month, f_day)}' and 
+            WHERE rent_start >= '{datetime.date(2022, month, f_day)}' and 
             rent_end <= '{datetime.date(2022, month, l_day)}'
             ORDER BY rent_start
         ''')
@@ -174,7 +174,7 @@ class PostgresApi:
             ORDER BY plate, date DESC
         ''')
 
-        return fuel_end.iat[0, 0]
+        return float(fuel_end.iat[0, 0])
 
     def fetch_mileage_end(self, plate):
         mileage_end = self.db.fetch_query(f'''
@@ -185,15 +185,19 @@ class PostgresApi:
             ORDER BY plate, date DESC
         ''')
 
-        return mileage_end.iat[0, 0]
+        return float(mileage_end.iat[0, 0])
 
     def fetch_tank_volume(self, plate):
         tank_volume = self.db.fetch_query(f'''
-            SELECT tank_volume FROM car
-            WHERE plate = '{plate}'
-        ''')
+                        SELECT tank_volume FROM car
+                        WHERE plate = '{plate}'
+                    ''')
 
-        return tank_volume.iat[0, 0]
+        while True:
+            try:
+                return tank_volume.iat[0, 0]
+            except IndexError:
+                return 0
 
     def fetch_consumption(self, plate):
         consumption = self.db.fetch_query(f'''
