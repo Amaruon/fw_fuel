@@ -4,13 +4,13 @@ import re
 
 
 class TimeSheetRow:
-    def __init__(self):
+    def __init__(self, date=None, t_type=None, hours=None, entity=None, acr=None):
         self.__id = None
-        self.__date = None
-        self.__type_of_time = None
-        self.__hours_worked = None
-        self.__entity = None
-        self.__acronym = None
+        self.__date = date
+        self.__type_of_time = t_type
+        self.__hours_worked = hours
+        self.__entity = entity
+        self.__acronym = acr
 
     @property
     def id(self): return self.__id
@@ -162,11 +162,14 @@ class Car:
 
 
 class RentedCar:
-    def __init__(self):
+    def __init__(self, plate=None, start=None, end=None):
         self.__id = None
-        self.__plate = None
-        self.__rent_start = None
-        self.__rent_end = None
+        self.__plate = plate
+        self.__rent_start = start
+        self.__rent_end = end
+        self.__entity = None
+        self.__month = None
+        self.__year = None
 
     @property
     def plate(self): return self.__plate
@@ -430,11 +433,3 @@ class WayBill:
     @mileage_end.setter
     def mileage_end(self, value):
         self.__mileage_end = value
-
-
-class WayBillFill:
-    def __init__(self):
-        self.df = pd.DataFrame()
-
-    def fetch_from_db(self):
-        pass

@@ -41,7 +41,7 @@ class Sql:
     def fetch_query(self, query):
         try:
             self.query(query)
-            return pd.DataFrame(self.cursor.fetchall())
+            return [self.cursor.fetchall()]
         except Exception as err:
             print(f'Error: {err}')
 
@@ -53,6 +53,7 @@ class Sql:
 class PostgresApi:
     def __init__(self):
         self.db = Sql()
+        self.class_list = []
 
     def connect_to_db(self, pwd):
         self.db.connect(pwd)
@@ -116,46 +117,53 @@ class PostgresApi:
         except Exception as err:
             print(f'Error: {err}')
 
-    def fetch_transactions(self, entity, f_day, l_day, month):
+    def fetch_transactions(self, l_day, month):
 
-        df = self.db.fetch_query(f'''
+        array = self.db.fetch_query(f'''
             SELECT card_number, date, entity, fuel, liters FROM fuel_transactions
-            WHERE date >= '{datetime.date(2022, month, f_day)}' and 
+            WHERE date >= '{datetime.date(2022, month, 1)}' and 
             date <= '{datetime.date(2022, month, l_day)}' and
-            entity = '{entity}'
-            ORDER BY card_number, date 
+            ORDER BY entity, card_number, date 
         ''')
+        for row in array:
+            item = FuelTransactions()
+            item.card_number, item.date, item.entity, item.fuel, item.liters = row
+            self.class_list.append(item)
 
-        df.columns = ['card_number', 'date', 'entity', 'fuel', 'liters']
-        return df
+        return self.class_list
 
-    def fetch_time_sheet(self, entity, f_day, l_day, month):
+    def fetch_time_sheet(self, l_day, month):
 
-        df = self.db.fetch_query(f'''
+        array = self.db.fetch_query(f'''
             SELECT date, acronym, type_of_time, hours_worked, entity FROM time_sheet
             WHERE entity = '{entity}' and 
-            date >= '{datetime.date(2022, month, f_day)}' and 
+            date >= '{datetime.date(2022, month, 1)}' and 
             date <= '{datetime.date(2022, month, l_day)}' and
-            entity = '{entity}'
             ORDER BY acronym
         ''')
 
-        df.columns = ['date', 'acronym', 'type_of_time', 'hours_worked', 'entity']
+        for row in array:
+            item = TimeSheetRow()
+            item.date, item.acronym, item.type_of_time, item.hours_worked, item.entity = row
+            self.class_list.append(item)
 
-        return df
+        return self.class_list
 
-    def fetch_rented_cars(self, f_day, l_day, month):
+    def fetch_rented_cars(self, l_day, month):
 
-        df = self.db.fetch_query(f'''
+        array = self.db.fetch_query(f'''
             SELECT plate, rent_start, rent_end FROM rented_car
-            WHERE rent_start >= '{datetime.date(2022, month, f_day)}' and 
+            WHERE rent_start >= '{datetime.date(2022, month, 1)}' and 
             rent_end <= '{datetime.date(2022, month, l_day)}'
             ORDER BY rent_start
         ''')
 
-        df.columns = ['plate', 'rent_start', 'rent_end']
+        for row in array:
+            item = RentedCar()
+            item.plate, item.rent_start, item.rent_end = row
+            self.class_list.append(item)
 
-        return df
+        return self.class_list
 
     def fetch_fuel_type(self, plate):
         fuel_type = self.db.fetch_query(f'''
@@ -163,7 +171,7 @@ class PostgresApi:
             WHERE plate = '{plate}'
         ''')
 
-        return fuel_type.iat[0, 0]
+        return fuel_type[0]
 
     def fetch_fuel_end(self, plate):
         fuel_end = self.db.fetch_query(f'''
@@ -174,7 +182,7 @@ class PostgresApi:
             ORDER BY plate, date DESC
         ''')
 
-        return float(fuel_end.iat[0, 0])
+        return float(fuel_end[0])
 
     def fetch_mileage_end(self, plate):
         mileage_end = self.db.fetch_query(f'''
@@ -185,7 +193,7 @@ class PostgresApi:
             ORDER BY plate, date DESC
         ''')
 
-        return float(mileage_end.iat[0, 0])
+        return float(mileage_end[0])
 
     def fetch_tank_volume(self, plate):
         tank_volume = self.db.fetch_query(f'''
@@ -195,7 +203,7 @@ class PostgresApi:
 
         while True:
             try:
-                return tank_volume.iat[0, 0]
+                return tank_volume[0]
             except IndexError:
                 return 0
 
@@ -205,4 +213,4 @@ class PostgresApi:
             WHERE plate = '{plate}'
         ''')
 
-        return consumption.iat[0, 0]
+        return consumption[0]

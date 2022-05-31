@@ -14,9 +14,9 @@ def calculate_fuel_consumption():
     # get all data from database
     db = PostgresApi()
     db.connect_to_db('1podnano&')
-    transactions = db.fetch_transactions('ОП "Азов"', 1, 31, 1)
-    time_sheet = db.fetch_time_sheet('ОП "Азов"', 1, 31, 1)
-    rented_cars = db.fetch_rented_cars(1, 31, 1)
+    transactions = db.fetch_transactions(31, 1)
+    time_sheet = db.fetch_time_sheet(31, 1)
+    rented_cars = db.fetch_rented_cars(31, 1)
 
     # change fuel naming
     for ind, row in transactions.iterrows():
