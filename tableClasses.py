@@ -433,3 +433,25 @@ class WayBill:
     @mileage_end.setter
     def mileage_end(self, value):
         self.__mileage_end = value
+
+
+class ExpandedRentedCar:
+    def __init__(self, plate=None, date=None):
+        self.__plate = plate
+        self.__date = date
+
+    @property
+    def plate(self):
+        return self.__plate
+
+    @plate.setter
+    def plate(self, value):
+        self.__plate = value
+
+    @property
+    def date(self):
+        return self.__date
+
+    @date.setter
+    def date(self, value):
+        self.__date = value

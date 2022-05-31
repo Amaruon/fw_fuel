@@ -1,13 +1,15 @@
 from DbConnector import PostgresApi
-from tableClasses import WayBill, TimeSheetRow
+from tableClasses import WayBill, ExpandedRentedCar
+from func import date_range
 import calendar
+import random as rd
 
 
 class WayBillFiller:
     def __init__(self, pas, month: int, year: int, api=PostgresApi()):
         self.db = api
         self.password = pas
-        self.db_array = None
+        self.db_array = []
         self.month = month
         self.year = year
 
@@ -45,12 +47,54 @@ class WayBillFiller:
                     drivers.remove(driver)
                     return driver.driver, drivers
 
-    def calc(self):
+    def expand_cars(self, cars):
+        new_cars = []
+
+        for car in cars:
+            for date in date_range(car.rent_start, car.rent_end):
+                item = ExpandedRentedCar()
+                item.plate = car.plate
+                item.date = date
+                new_cars.append(item)
+        return new_cars
+
+    def assign_cars(self, row, cars):
+        for car in cars[:]:
+            if row.fuel == self.db.fetch_fuel_type(car.plate).rstrip() and row.date == car.date:
+                cars.remove(car)
+                return car.plate, cars
+
+    def fuel_start(self, plate):    # work on it
+        # try to find in postgres
+        # if empty - in self.db_array
+        # else rand in range(40, 50)
+        return plate
+
+    def calc_fuel(self, row):
+        tank = self.db.fetch_tank_volume(row.plate)
+        fuel_start = self.fuel_start(row.plate)
+        fuel_get = row.fuel_get
+        fuel_spent = rd.uniform(4.21, 5.76)
+
+        if tank == 0:
+            return None
+        else:
+            row.fuel_start = fuel_start
+            while True:
+                if tank <= fuel_start + fuel_get - fuel_spent:
+                    diff = tank - fuel_start - fuel_get + fuel_spent
+                    fuel_spent += rd.uniform(diff + 2.34, diff - 2.37)
+                else:
+                    fuel_end = row.fuel_start + row.fuel_get - fuel_spent
+                    return row.fuel_start, fuel_spent, fuel_end
+
+    def fill(self):
         transactions, drivers, cars = self.get_data()
         self.set_transactions(transactions)
+        cars = self.expand_cars(cars)
 
         for row in self.db_array:
             row.fuel = self.change_fuel_naming(row)
             row.driver, drivers = self.assign_driver(row, drivers)
-
-
+            row.plate, cars = self.assign_cars(row, cars)
+            row.fuel_start, row.fuel_spent, row.fuel_end = self.calc_fuel(row)
