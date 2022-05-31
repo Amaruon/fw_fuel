@@ -42,7 +42,6 @@ class WayBillFiller:
         else:
             for driver in drivers[:]:
                 if driver.date == row.date and driver.entity == row.entity and row.card_number != '0':
-                    row.driver = driver.driver
                     drivers.remove(driver)
                     return driver.driver, drivers
 
