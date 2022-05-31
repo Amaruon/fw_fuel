@@ -79,14 +79,13 @@ class WayBillFiller:
         if tank == 0:
             return None
         else:
-            row.fuel_start = fuel_start
             while True:
                 if tank <= fuel_start + fuel_get - fuel_spent:
                     diff = tank - fuel_start - fuel_get + fuel_spent
                     fuel_spent += rd.uniform(diff + 2.34, diff - 2.37)
                 else:
-                    fuel_end = row.fuel_start + row.fuel_get - fuel_spent
-                    return row.fuel_start, fuel_spent, fuel_end
+                    fuel_end = fuel_start + row.fuel_get - fuel_spent
+                    return fuel_start, fuel_spent, fuel_end
 
     def fill(self):
         transactions, drivers, cars = self.get_data()
