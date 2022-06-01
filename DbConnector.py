@@ -181,8 +181,11 @@ class PostgresApi:
             WHERE plate = '{plate}'
             ORDER BY plate, date DESC
         ''')
-
-        return float(fuel_end[0])
+        while True:
+            try:
+                return float(fuel_end[0])
+            except IndexError:
+                return 0
 
     def fetch_mileage_end(self, plate):
         mileage_end = self.db.fetch_query(f'''
@@ -192,8 +195,11 @@ class PostgresApi:
             WHERE plate = '{plate}'
             ORDER BY plate, date DESC
         ''')
-
-        return float(mileage_end[0])
+        while True:
+            try:
+                return float(mileage_end[0])
+            except IndexError:
+                return 0
 
     def fetch_tank_volume(self, plate):
         tank_volume = self.db.fetch_query(f'''
