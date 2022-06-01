@@ -1,6 +1,5 @@
 import psycopg2
 import datetime
-import pandas as pd
 from tableClasses import Worker, RentedCar, Car, FuelTransactions, TimeSheetRow, MileageFuelEnd
 
 
@@ -136,7 +135,6 @@ class PostgresApi:
 
         array = self.db.fetch_query(f'''
             SELECT date, acronym, type_of_time, hours_worked, entity FROM time_sheet
-            WHERE entity = '{entity}' and 
             date >= '{datetime.date(2022, month, 1)}' and 
             date <= '{datetime.date(2022, month, l_day)}' and
             ORDER BY acronym
