@@ -6,7 +6,6 @@ from tableClasses import Worker, RentedCar, Car, TimeSheetRow, FuelTransactions,
 
 class CsvReader:
     def __init__(self):
-        self.file = None
         self.array = None
 
     def open_csv(self, file):
