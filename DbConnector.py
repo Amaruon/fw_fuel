@@ -68,6 +68,7 @@ class PostgresApi:
         self.db.close_connection()
 
     def upload_to_db(self, array, pwd):
+        self.db.connect(pwd)
         if isinstance(array, Iterable):
             for row in array:
                 self.upload_queries(row)
@@ -184,9 +185,13 @@ class PostgresApi:
             WHERE plate = '{plate}'
             ORDER BY plate, date DESC
         ''')
+        print(plate)
         while True:
             try:
-                return float(''.join(fuel_end[0]))
+                fuel_end = str(fuel_end[0])
+                fuel_end = fuel_end.replace('(', '')
+                fuel_end = fuel_end.replace(',)', '')
+                return float(fuel_end)
             except IndexError:
                 return 0
 
@@ -198,9 +203,13 @@ class PostgresApi:
             WHERE plate = '{plate}'
             ORDER BY plate, date DESC
         ''')
+
         while True:
             try:
-                return float(''.join(mileage_end[0]))
+                mileage_end = str(mileage_end[0])
+                mileage_end = mileage_end.replace('(', '')
+                mileage_end = mileage_end.replace(',)', '')
+                return float(mileage_end)
             except IndexError:
                 return 0
 
@@ -209,12 +218,11 @@ class PostgresApi:
                         SELECT tank_volume FROM car
                         WHERE plate = '{plate}'
                     ''')
-        tank_volume = str(tank_volume)
-        tank_volume = tank_volume.replace('(', '')
-        tank_volume = tank_volume.replace(',)', '')
-
         while True:
             try:
+                tank_volume = str(tank_volume)
+                tank_volume = tank_volume.replace('(', '')
+                tank_volume = tank_volume.replace(',)', '')
                 return int(tank_volume)
             except IndexError:
                 return 0
