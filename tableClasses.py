@@ -270,6 +270,9 @@ class FuelTransactions:
         self.__price = None
         self.__total_price = None
 
+    def __iter__(self):
+        return self
+
     @property
     def id(self): return self.id
 

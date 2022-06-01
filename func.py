@@ -1,16 +1,10 @@
-from datetime import timedelta
 from CsvReader import CsvReader
 from DbConnector import PostgresApi
 from WayBillFiller import WayBillFiller
 
 
-def date_range(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n + 1)
-
-
 def upload_csv(list_of_ints, password):
-    names = ['rent-dates',
+    names = ['rent_dates',
              'workers',
              'cars',
              'time_sheet',
@@ -27,7 +21,6 @@ def upload_csv(list_of_ints, password):
 def body():
     password = input('Enter password for db: ')
     user_input = ''
-    print('What to do:\n1. Upload csv to database\n2. Calculate fuel')
     while user_input != '!exit':
         print('What to do:\n1. Upload csv to database\n2. Calculate fuel')
         user_input = input()
@@ -47,3 +40,6 @@ def body():
             year = int(input('Enter year: '))
             month = int(input('Enter month: '))
             filler = WayBillFiller(password, month, year)
+            filler.fill()
+        else:
+            print('Wrong input')
