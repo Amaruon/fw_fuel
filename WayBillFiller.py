@@ -6,8 +6,8 @@ import random as rd
 
 
 def date_range(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n + 1)
+    for n in range(int((end_date - start_date).days)+1):
+        yield start_date + timedelta(n)
 
 
 class WayBillFiller:
@@ -24,7 +24,7 @@ class WayBillFiller:
         drivers = self.db.fetch_time_sheet(calendar.monthrange(self.year, self.month)[1], self.month)
         cars = self.db.fetch_rented_cars(calendar.monthrange(self.year, self.month)[1], self.month)
 
-        return transactions, drivers, cars
+        return [transactions, drivers, cars]
 
     def set_transactions(self, transactions):
         for row in transactions:
@@ -49,15 +49,18 @@ class WayBillFiller:
     def assign_driver(row, drivers):
         # exclude high refills
         if row.fuel == 'АИ-95' and row.fuel_get >= 60:
-            return 'To tank'
+            return ['To tank', drivers]
         elif row.fuel == 'Дизельное топливо' and row.fuel_get >= 75:
-            return 'To tank'
+            return ['To tank', drivers]
         else:
+            if row.entity == 'Оп "Кольская"':
+                row.entity = 'ОП "Каменск-Красносулинский"'
             for driver in drivers[:]:
                 if isinstance(driver, TimeSheetRow) and driver.date == row.date \
                         and driver.entity == row.entity and row.card_number != '0':
                     drivers.remove(driver)
-                    return driver.acronym, drivers
+                    return [driver.acronym, drivers]
+            return ['To tank', drivers]
 
     @staticmethod
     def expand_cars(cars):
@@ -76,7 +79,10 @@ class WayBillFiller:
         for car in cars[:]:
             if row.fuel == ''.join(self.db.fetch_fuel_type(car.plate)) and row.date == car.date:
                 cars.remove(car)
-                return car.plate, cars
+                return [car.plate, cars]
+            else:
+                continue
+        return ['No car', cars]
 
     def fuel_start(self, plate):    # work on it
         fuel_start = self.db.fetch_fuel_end(plate)
@@ -90,8 +96,7 @@ class WayBillFiller:
         tank = self.db.fetch_tank_volume(row.plate)
         fuel_start = self.fuel_start(row.plate)
         fuel_get = row.fuel_get
-        fuel_spent = rd.uniform(4.21, 5.76)
-        print(f'before iter {tank, fuel_start, fuel_get, fuel_spent}')
+        fuel_spent = rd.uniform(3.21, 7.76)
 
         if tank == 0:
             return None
@@ -99,10 +104,8 @@ class WayBillFiller:
             while True:
                 if tank <= fuel_start + fuel_get - fuel_spent:
                     fuel_spent += 5.36
-                    print(f'true iter {tank, fuel_start, fuel_get, fuel_spent}')
                 else:
                     fuel_end = fuel_start + row.fuel_get - fuel_spent
-                    print(f'false  iter {tank, fuel_start, fuel_get, fuel_spent}')
                     return [fuel_start, fuel_spent, fuel_end]
 
     def calc_mileage(self, row):
@@ -110,10 +113,7 @@ class WayBillFiller:
         consumption = self.db.fetch_consumption(row.plate)
 
         mileage_spent = consumption * row.fuel_spent
-        print(consumption, row.fuel_spent, mileage_spent)
         mileage_end = mileage_start + mileage_spent
-
-        print([mileage_start, mileage_spent, mileage_end])
 
         return [mileage_start, mileage_spent, mileage_end]
 
@@ -123,12 +123,18 @@ class WayBillFiller:
         cars = self.expand_cars(cars)
 
         for row in self.db_array:
-            item = MileageFuelEnd()
-            item.date = row.date
-            row.fuel = self.change_fuel_naming(row)
-            row.driver, drivers = self.assign_driver(row, drivers)
-            row.plate, cars = self.assign_cars(row, cars)
-            item.plate = row.plate
-            row.fuel_start, row.fuel_spent, item.fuel_end = self.calc_fuel(row)
-            row.mileage_start, row.mileage_spent, item.mileage_end = self.calc_mileage(row)
-            self.db.upload_to_db(item, self.password)
+            if row.card_number != '0':
+                item = MileageFuelEnd()
+                item.date = row.date
+                row.fuel = self.change_fuel_naming(row)
+                row.driver, drivers = self.assign_driver(row, drivers)
+                row.plate, cars = self.assign_cars(row, cars)
+                if row.driver == 'To tank' or row.plate == 'No car':
+                    continue
+                else:
+                    item.plate = row.plate
+                    row.fuel_start, row.fuel_spent, item.fuel_end = self.calc_fuel(row)
+                    row.mileage_start, row.mileage_spent, item.mileage_end = self.calc_mileage(row)
+                    self.db.upload_to_db(item, self.password)
+            else:
+                continue
