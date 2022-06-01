@@ -1,8 +1,13 @@
 from DbConnector import PostgresApi
-from tableClasses import WayBill, ExpandedRentedCar, MileageFuelEnd
-from func import date_range
+from tableClasses import WayBill, ExpandedRentedCar, MileageFuelEnd, FuelTransactions, RentedCar, TimeSheetRow
 import calendar
+from datetime import timedelta
 import random as rd
+
+
+def date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n + 1)
 
 
 class WayBillFiller:
@@ -23,11 +28,15 @@ class WayBillFiller:
 
     def set_transactions(self, transactions):
         for row in transactions:
-            item = WayBill()
-            item.card_number, item.date, item.entity, \
-            item.fuel, item.fuel_get = row
+            if isinstance(row, FuelTransactions):
+                item = WayBill()
+                item.card_number = row.card_number
+                item.date = row.date
+                item.entity = row.entity
+                item.fuel = row.fuel
+                item.fuel_get = row.liters
 
-            self.db_array.append(item)
+                self.db_array.append(item)
 
     @staticmethod
     def change_fuel_naming(row):
@@ -45,25 +54,27 @@ class WayBillFiller:
             return 'To tank'
         else:
             for driver in drivers[:]:
-                if driver.date == row.date and driver.entity == row.entity and row.card_number != '0':
+                if isinstance(driver, TimeSheetRow) and driver.date == row.date \
+                        and driver.entity == row.entity and row.card_number != '0':
                     drivers.remove(driver)
-                    return driver.driver, drivers
+                    return driver.acronym, drivers
 
     @staticmethod
     def expand_cars(cars):
         new_cars = []
 
         for car in cars:
-            for date in date_range(car.rent_start, car.rent_end):
-                item = ExpandedRentedCar()
-                item.plate = car.plate
-                item.date = date
-                new_cars.append(item)
+            if isinstance(car, RentedCar):
+                for date in date_range(car.rent_start, car.rent_end):
+                    item = ExpandedRentedCar()
+                    item.plate = car.plate
+                    item.date = date
+                    new_cars.append(item)
         return new_cars
 
     def assign_cars(self, row, cars):
         for car in cars[:]:
-            if row.fuel == self.db.fetch_fuel_type(car.plate).rstrip() and row.date == car.date:
+            if row.fuel == ''.join(self.db.fetch_fuel_type(car.plate)) and row.date == car.date:
                 cars.remove(car)
                 return car.plate, cars
 
@@ -80,26 +91,31 @@ class WayBillFiller:
         fuel_start = self.fuel_start(row.plate)
         fuel_get = row.fuel_get
         fuel_spent = rd.uniform(4.21, 5.76)
+        print(f'before iter {tank, fuel_start, fuel_get, fuel_spent}')
 
         if tank == 0:
             return None
         else:
             while True:
                 if tank <= fuel_start + fuel_get - fuel_spent:
-                    diff = tank - fuel_start - fuel_get + fuel_spent
-                    fuel_spent += rd.uniform(diff + 2.34, diff - 2.37)
+                    fuel_spent += 5.36
+                    print(f'true iter {tank, fuel_start, fuel_get, fuel_spent}')
                 else:
                     fuel_end = fuel_start + row.fuel_get - fuel_spent
-                    return fuel_start, fuel_spent, fuel_end
+                    print(f'false  iter {tank, fuel_start, fuel_get, fuel_spent}')
+                    return [fuel_start, fuel_spent, fuel_end]
 
     def calc_mileage(self, row):
         mileage_start = self.mileage_start(row.plate)
         consumption = self.db.fetch_consumption(row.plate)
 
         mileage_spent = consumption * row.fuel_spent
+        print(consumption, row.fuel_spent, mileage_spent)
         mileage_end = mileage_start + mileage_spent
 
-        return mileage_start, mileage_spent, mileage_end
+        print([mileage_start, mileage_spent, mileage_end])
+
+        return [mileage_start, mileage_spent, mileage_end]
 
     def fill(self):
         transactions, drivers, cars = self.get_data()
@@ -108,7 +124,7 @@ class WayBillFiller:
 
         for row in self.db_array:
             item = MileageFuelEnd()
-            item.plate = row.date
+            item.date = row.date
             row.fuel = self.change_fuel_naming(row)
             row.driver, drivers = self.assign_driver(row, drivers)
             row.plate, cars = self.assign_cars(row, cars)

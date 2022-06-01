@@ -1,6 +1,7 @@
 import psycopg2
 import datetime
 from tableClasses import Worker, RentedCar, Car, FuelTransactions, TimeSheetRow, MileageFuelEnd
+from _collections_abc import Iterable
 
 
 class Sql:
@@ -33,14 +34,20 @@ class Sql:
         self._conn.autocommit = True
         try:
             self.cursor.execute(query)
-            print('Query was completed')
         except Exception as Err:
-            print(f'Error in query: "{Err}"')
+            print(f'Error: "{Err}\nin query: {query}"')
 
     def fetch_query(self, query):
         try:
             self.query(query)
-            return [self.cursor.fetchall()]
+            return self.cursor.fetchall()
+        except Exception as err:
+            print(f'Error: {err}')
+
+    def fetch_numeric_query(self, query):
+        try:
+            self.query(query)
+            return self.__cursor.fetchone()
         except Exception as err:
             print(f'Error: {err}')
 
@@ -61,12 +68,11 @@ class PostgresApi:
         self.db.close_connection()
 
     def upload_to_db(self, array, pwd):
-        self.connect_to_db(pwd)
-
-        for row in array:
-            self.upload_queries(row)
-
-        self.exit()
+        if isinstance(array, Iterable):
+            for row in array:
+                self.upload_queries(row)
+        else:
+            self.upload_queries(array)
 
     def upload_queries(self, value):
         try:
@@ -99,7 +105,7 @@ class PostgresApi:
 
             elif isinstance(value, TimeSheetRow):
                 self.db.query(f'''
-                    INSERT INTO time_sheet (date, acronym, type_of_time, hours_worked, entity)
+                    INSERT INTO time_sheet_row (date, acronym, type_of_time, hours_worked, entity)
                     VALUES (
                     '{value.date}', '{value.acronym}', '{value.type_of_time}', '{int(value.hours_worked)}', '{value.entity}'
                     )
@@ -119,9 +125,9 @@ class PostgresApi:
     def fetch_transactions(self, l_day, month):
 
         array = self.db.fetch_query(f'''
-            SELECT card_number, date, entity, fuel, liters FROM fuel_transactions
+            SELECT card_number, date, entity, fuel, liters FROM fuel_card
             WHERE date >= '{datetime.date(2022, month, 1)}' and 
-            date <= '{datetime.date(2022, month, l_day)}' and
+            date <= '{datetime.date(2022, month, l_day)}'
             ORDER BY entity, card_number, date 
         ''')
         for row in array:
@@ -134,9 +140,9 @@ class PostgresApi:
     def fetch_time_sheet(self, l_day, month):
 
         array = self.db.fetch_query(f'''
-            SELECT date, acronym, type_of_time, hours_worked, entity FROM time_sheet
-            date >= '{datetime.date(2022, month, 1)}' and 
-            date <= '{datetime.date(2022, month, l_day)}' and
+            SELECT date, acronym, type_of_time, hours_worked, entity FROM time_sheet_row
+            WHERE date >= '{datetime.date(2022, month, 1)}' and 
+            date <= '{datetime.date(2022, month, l_day)}'
             ORDER BY acronym
         ''')
 
@@ -168,7 +174,6 @@ class PostgresApi:
             SELECT fuel FROM car
             WHERE plate = '{plate}'
         ''')
-
         return fuel_type[0]
 
     def fetch_fuel_end(self, plate):
@@ -181,7 +186,7 @@ class PostgresApi:
         ''')
         while True:
             try:
-                return float(fuel_end[0])
+                return float(''.join(fuel_end[0]))
             except IndexError:
                 return 0
 
@@ -195,26 +200,32 @@ class PostgresApi:
         ''')
         while True:
             try:
-                return float(mileage_end[0])
+                return float(''.join(mileage_end[0]))
             except IndexError:
                 return 0
 
     def fetch_tank_volume(self, plate):
-        tank_volume = self.db.fetch_query(f'''
+        tank_volume = self.db.fetch_numeric_query(f'''
                         SELECT tank_volume FROM car
                         WHERE plate = '{plate}'
                     ''')
+        tank_volume = str(tank_volume)
+        tank_volume = tank_volume.replace('(', '')
+        tank_volume = tank_volume.replace(',)', '')
 
         while True:
             try:
-                return tank_volume[0]
+                return int(tank_volume)
             except IndexError:
                 return 0
 
     def fetch_consumption(self, plate):
-        consumption = self.db.fetch_query(f'''
+        consumption = self.db.fetch_numeric_query(f'''
             SELECT consumption_rate FROM car
             WHERE plate = '{plate}'
         ''')
-
-        return consumption[0]
+        consumption = str(consumption)
+        consumption = consumption.replace('(', '')
+        consumption = consumption.replace(',)', '')
+        consumption = float(consumption)
+        return consumption
