@@ -73,7 +73,7 @@ class PostgresApi:
         try:
             if isinstance(value, Worker):
                 self.db.query(f'''
-                    INSERT INTO worker (acronym, ru_name, eng_name, driver_licence)
+                    INSERT INTO worker (acronym, ru_name, eng_name, driver_license)
                     VALUES ('{value.acronym}', '{value.ru_name}', '{value.eng_name}', '{value.driver_license}');''')
 
             elif isinstance(value, RentedCar):
@@ -91,7 +91,7 @@ class PostgresApi:
 
             elif isinstance(value, FuelTransactions):
                 self.db.query(f'''
-                    INSERT INTO fuel_transactions (card_number, date, entity, fuel, liters, price, total_price)
+                    INSERT INTO fuel_card (card_number, date, entity, fuel, liters, price, total_price)
                     VALUES (
                         '{value.card_number}', '{value.date}', '{value.entity}', 
                         '{value.fuel}', '{value.liters}', '{value.price}', '{value.total_price}'

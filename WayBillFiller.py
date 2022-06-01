@@ -69,19 +69,11 @@ class WayBillFiller:
 
     def fuel_start(self, plate):    # work on it
         fuel_start = self.db.fetch_fuel_end(plate)
-
-        if fuel_start == 0:
-            return rd.uniform(40.000, 50.000)
-        else:
-            return fuel_start
+        return rd.uniform(40.000, 50.000) if fuel_start == 0 else fuel_start
 
     def mileage_start(self, plate):
         mileage_start = self.db.fetch_mileage_end(plate)
-
-        if mileage_start == 0:
-            return rd.uniform(11234.0, 45124.0)
-        else:
-            return mileage_start
+        return rd.uniform(11234.0, 45124.0) if mileage_start == 0 else mileage_start
 
     def calc_fuel(self, row):
         tank = self.db.fetch_tank_volume(row.plate)
