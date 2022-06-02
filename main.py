@@ -1,4 +1,5 @@
 from func import body
+import pandas as pd
 
 
 def main():
@@ -6,4 +7,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    body()

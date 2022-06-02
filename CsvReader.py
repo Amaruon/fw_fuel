@@ -18,7 +18,7 @@ class CsvReader:
         self.open_csv(file)
         rented_cars = []
         for row in self.array:
-            plate = r'[А-ЯA-Z][0-9]{3}[А-ЯA-Z]{2}[0-9]{2}'
+            plate = r'[А-ЯA-Z][0-9]{3}[А-ЯA-Z]{2}[0-9]{3}'
             dates = r'\d\d/\d\d/\d\d - \d\d/\d\d/\d\d'
             if re.search(plate, row[0]) and re.search(dates, row[0]):
                 dates_list = re.findall(r'\d\d/\d\d/\d\d', row[0])
@@ -80,6 +80,14 @@ class CsvReader:
     def fuel_transactions(self, file):
         self.open_csv(file)
         transactions = []
+
+        dataset = pd.DataFrame(self.array)
+        dataset.columns = ['Card', 'Date', 'Entity', 'Fuel', 'Liters', 'Price', 'TOTAL RUB']
+        dataset = dataset.groupby(['Card', 'Date', 'Entity', 'Fuel']).agg({'Liters': 'sum',
+                                                                           'Price': 'mean',
+                                                                           'TOTAL RUB': 'sum'})
+        dataset.reset_index(inplace=True)
+        self.array = dataset.to_numpy()
 
         for row in self.array:
             item = FuelTransactions()

@@ -41,5 +41,6 @@ def body():
             month = int(input('Enter month: '))
             filler = WayBillFiller(password, month, year)
             filler.fill()
+            filler.upload()
         else:
             print('Wrong input')

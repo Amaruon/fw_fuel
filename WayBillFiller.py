@@ -93,8 +93,8 @@ class WayBillFiller:
         return rd.uniform(11234.0, 45124.0) if mileage_start == 0 else mileage_start
 
     def calc_fuel(self, row):
-        tank = self.db.fetch_tank_volume(row.plate)
-        fuel_start = self.fuel_start(row.plate)
+        tank = self.db.fetch_tank_volume(row.car)
+        fuel_start = self.fuel_start(row.car)
         fuel_get = row.fuel_get
         fuel_spent = rd.uniform(3.21, 7.76)
 
@@ -109,8 +109,8 @@ class WayBillFiller:
                     return [fuel_start, fuel_spent, fuel_end]
 
     def calc_mileage(self, row):
-        mileage_start = self.mileage_start(row.plate)
-        consumption = self.db.fetch_consumption(row.plate)
+        mileage_start = self.mileage_start(row.car)
+        consumption = self.db.fetch_consumption(row.car)
 
         mileage_spent = consumption * row.fuel_spent
         mileage_end = mileage_start + mileage_spent
@@ -128,13 +128,16 @@ class WayBillFiller:
                 item.date = row.date
                 row.fuel = self.change_fuel_naming(row)
                 row.driver, drivers = self.assign_driver(row, drivers)
-                row.plate, cars = self.assign_cars(row, cars)
-                if row.driver == 'To tank' or row.plate == 'No car':
+                row.car, cars = self.assign_cars(row, cars)
+                if row.driver == 'To tank' or row.car == 'No car':
                     continue
                 else:
-                    item.plate = row.plate
+                    item.plate = row.car
                     row.fuel_start, row.fuel_spent, item.fuel_end = self.calc_fuel(row)
                     row.mileage_start, row.mileage_spent, item.mileage_end = self.calc_mileage(row)
                     self.db.upload_to_db(item, self.password)
             else:
                 continue
+
+    def upload(self):
+        self.db.upload_to_db(self.db_array, self.password)

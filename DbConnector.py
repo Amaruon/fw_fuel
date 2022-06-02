@@ -1,6 +1,6 @@
 import psycopg2
 import datetime
-from tableClasses import Worker, RentedCar, Car, FuelTransactions, TimeSheetRow, MileageFuelEnd
+from tableClasses import Worker, RentedCar, Car, FuelTransactions, TimeSheetRow, MileageFuelEnd, WayBill
 from _collections_abc import Iterable
 
 
@@ -36,6 +36,7 @@ class Sql:
             self.cursor.execute(query)
         except Exception as Err:
             print(f'Error: "{Err}\nin query: {query}"')
+
 
     def fetch_query(self, query):
         try:
@@ -108,7 +109,7 @@ class PostgresApi:
                 self.db.query(f'''
                     INSERT INTO time_sheet_row (date, acronym, type_of_time, hours_worked, entity)
                     VALUES (
-                    '{value.date}', '{value.acronym}', '{value.type_of_time}', '{int(value.hours_worked)}', '{value.entity}'
+                        '{value.date}', '{value.acronym}', '{value.type_of_time}', '{int(value.hours_worked)}', '{value.entity}'
                     )
                 ''')
 
@@ -116,7 +117,17 @@ class PostgresApi:
                 self.db.query(f'''
                     INSERT INTO mileage_fuel_end (plate, date, mileage_end, fuel_end)
                     VALUES (
-                    '{value.plate}', '{value.date}', '{value.mileage_end}', '{value.fuel_end}'
+                        '{value.plate}', '{value.date}', '{value.mileage_end}', '{value.fuel_end}'
+                    )
+                ''')
+
+            elif isinstance(value, WayBill):
+                self.db.query(f'''
+                    INSERT INTO way_bill (card_number, date, driver, car, 
+                                          fuel_start, fuel_spent, mileage_start, mileage_spent)
+                    VALUES (
+                        '{value.card_number}', '{value.date}', '{value.driver}', '{value.car}', '{value.fuel_start}',
+                        '{value.fuel_spent}', '{value.mileage_start}', '{value.mileage_spent}'
                     )
                 ''')
 
@@ -129,7 +140,7 @@ class PostgresApi:
             SELECT card_number, date, entity, fuel, liters FROM fuel_card
             WHERE date >= '{datetime.date(2022, month, 1)}' and 
             date <= '{datetime.date(2022, month, l_day)}'
-            ORDER BY entity, card_number, date 
+            ORDER BY date, card_number
         ''')
         for row in array:
             item = FuelTransactions()
