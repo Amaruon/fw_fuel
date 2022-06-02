@@ -6,7 +6,6 @@ from tableClasses import Worker, RentedCar, Car, TimeSheetRow, FuelTransactions,
 
 class CsvReader:
     def __init__(self):
-        self.file = None
         self.array = None
 
     def open_csv(self, file):
@@ -19,7 +18,7 @@ class CsvReader:
         self.open_csv(file)
         rented_cars = []
         for row in self.array:
-            plate = r'[А-ЯA-Z][0-9]{3}[А-ЯA-Z]{2}[0-9]{3}'
+            plate = r'[А-ЯA-Z][0-9]{3}[А-ЯA-Z]{2}[0-9]{2}'
             dates = r'\d\d/\d\d/\d\d - \d\d/\d\d/\d\d'
             if re.search(plate, row[0]) and re.search(dates, row[0]):
                 dates_list = re.findall(r'\d\d/\d\d/\d\d', row[0])

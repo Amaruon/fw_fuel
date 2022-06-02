@@ -1,4 +1,3 @@
-import pandas as pd
 from datetime import datetime
 import re
 
@@ -270,6 +269,9 @@ class FuelTransactions:
         self.__price = None
         self.__total_price = None
 
+    def __iter__(self):
+        return self
+
     @property
     def id(self): return self.id
 
@@ -338,10 +340,8 @@ class WayBill:
         self.__car = None
         self.__fuel_start = None
         self.__fuel_spent = None
-        self.__fuel_end = None
         self.__mileage_start = None
         self.__mileage_spent = None
-        self.__mileage_end = None
 
     @property
     def card_number(self): return self.__card_number
@@ -407,13 +407,6 @@ class WayBill:
         self.__fuel_spent = value
 
     @property
-    def fuel_end(self): return self.__fuel_end
-
-    @fuel_end.setter
-    def fuel_end(self, value):
-        self.__fuel_end = value
-
-    @property
     def mileage_start(self): return self.__mileage_start
 
     @mileage_start.setter
@@ -426,13 +419,6 @@ class WayBill:
     @mileage_spent.setter
     def mileage_spent(self, value):
         self.__mileage_spent = value
-
-    @property
-    def mileage_end(self): return self.__mileage_end
-
-    @mileage_end.setter
-    def mileage_end(self, value):
-        self.__mileage_end = value
 
 
 class ExpandedRentedCar:
