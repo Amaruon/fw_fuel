@@ -112,7 +112,7 @@ class WayBillFiller:
         mileage_start = self.mileage_start(row.car)
         consumption = self.db.fetch_consumption(row.car)
 
-        mileage_spent = consumption * row.fuel_spent
+        mileage_spent = 100 * row.fuel_spent / consumption
         mileage_end = mileage_start + mileage_spent
 
         return [mileage_start, mileage_spent, mileage_end]
