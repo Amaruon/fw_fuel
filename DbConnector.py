@@ -37,7 +37,6 @@ class Sql:
         except Exception as Err:
             print(f'Error: "{Err}\nin query: {query}"')
 
-
     def fetch_query(self, query):
         try:
             self.query(query)
@@ -248,3 +247,13 @@ class PostgresApi:
         consumption = consumption.replace(',)', '')
         consumption = float(consumption)
         return consumption
+
+    def fetch_result(self):
+        result = self.db.fetch_query(f'''
+            SELECT wb.*, fc.liters, mfe.fuel_end, mfe.mileage_end, tsr.entity from way_bill wb
+            LEFT JOIN fuel_card fc on wb.card_number = fc.card_number and wb.date = fc.date
+            left join mileage_fuel_end mfe on mfe.date = wb.date and mfe.plate = wb.car
+            left join time_sheet_row tsr on tsr.date = wb.date and tsr.acronym = wb.driver;
+        ''')
+
+        return result
