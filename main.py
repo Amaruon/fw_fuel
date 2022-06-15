@@ -1,5 +1,4 @@
 from func import body
-import pandas as pd
 
 
 def main():

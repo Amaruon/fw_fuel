@@ -84,8 +84,8 @@ class PostgresApi:
 
             elif isinstance(value, RentedCar):
                 self.db.query(f'''
-                    INSERT INTO rented_car (plate, rent_start, rent_end) 
-                    VALUES ('{value.plate}', '{value.rent_start}', '{value.rent_end}')
+                    INSERT INTO rented_car (plate, rent_start, rent_end, entity) 
+                    VALUES ('{value.plate}', '{value.rent_start}', '{value.rent_end}', '{value.entity}')
                 ''')
 
             elif isinstance(value, Car):
@@ -151,9 +151,11 @@ class PostgresApi:
     def fetch_time_sheet(self, l_day, month):
 
         array = self.db.fetch_query(f'''
-            SELECT date, acronym, type_of_time, hours_worked, entity FROM time_sheet_row
-            WHERE date >= '{datetime.date(2022, month, 1)}' and 
-            date <= '{datetime.date(2022, month, l_day)}'
+            SELECT tsr.date, tsr.acronym, tsr.type_of_time, tsr.hours_worked, tsr.entity FROM time_sheet_row tsr, worker w
+            WHERE tsr.date >= '{datetime.date(2022, month, 1)}' and 
+            tsr.date <= '{datetime.date(2022, month, l_day)}' and
+            tsr.acronym = w.acronym and
+            w.driver_license = 'True'
             ORDER BY acronym
         ''')
 
@@ -250,10 +252,13 @@ class PostgresApi:
 
     def fetch_result(self):
         result = self.db.fetch_query(f'''
-            SELECT wb.*, fc.liters, mfe.fuel_end, mfe.mileage_end, tsr.entity from way_bill wb
+            SELECT wb.*, fc.liters, mfe.fuel_end, mfe.mileage_end, 
+            tsr.entity, w.ru_name, w.driver_license, c.consumption_rate from way_bill wb
             LEFT JOIN fuel_card fc on wb.card_number = fc.card_number and wb.date = fc.date
             left join mileage_fuel_end mfe on mfe.date = wb.date and mfe.plate = wb.car
-            left join time_sheet_row tsr on tsr.date = wb.date and tsr.acronym = wb.driver;
+            left join time_sheet_row tsr on tsr.date = wb.date and tsr.acronym = wb.driver
+            left join worker w on w.acronym = wb.driver
+            left join car c on c.plate = wb.car;
         ''')
 
         return result

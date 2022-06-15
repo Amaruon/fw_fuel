@@ -26,6 +26,7 @@ class CsvReader:
                 item.plate = re.findall(plate, row[0])[0]
                 item.rent_start = datetime.strptime(dates_list[0], '%d/%m/%y').date()
                 item.rent_end = datetime.strptime(dates_list[1], '%d/%m/%y').date()
+                item.entity = row[1]
                 rented_cars.append(item)
                 print(item.plate)
             else:

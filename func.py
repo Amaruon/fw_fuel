@@ -58,8 +58,13 @@ def body():
                                                 'fuel_get',
                                                 'fuel_end',
                                                 'mileage_end',
-                                                'entity'
+                                                'entity',
+                                                'ru_name',
+                                                'driver_license',
+                                                'consumption_rate'
                                                 ])
+
             df.to_excel('fuel-result.xlsx')
+            break
         else:
             print('Wrong input')

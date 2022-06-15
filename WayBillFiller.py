@@ -77,7 +77,8 @@ class WayBillFiller:
 
     def assign_cars(self, row, cars):
         for car in cars[:]:
-            if row.fuel == ''.join(self.db.fetch_fuel_type(car.plate)) and row.date == car.date:
+            if row.fuel == ''.join(self.db.fetch_fuel_type(car.plate)) and row.date == car.date\
+                    and row.entity == car.entity:
                 cars.remove(car)
                 return [car.plate, cars]
             else:
