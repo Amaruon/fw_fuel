@@ -72,6 +72,7 @@ class WayBillFiller:
                     item = ExpandedRentedCar()
                     item.plate = car.plate
                     item.date = date
+                    item.entity = car.entity
                     new_cars.append(item)
         return new_cars
 

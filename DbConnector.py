@@ -177,7 +177,7 @@ class PostgresApi:
 
         for row in array:
             item = RentedCar()
-            item.plate, item.rent_start, item.rent_end = row
+            item.plate, item.rent_start, item.rent_end, item.entity = row
             self.class_list.append(item)
 
         return self.class_list

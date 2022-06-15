@@ -425,6 +425,7 @@ class ExpandedRentedCar:
     def __init__(self, plate=None, date=None):
         self.__plate = plate
         self.__date = date
+        self.__entity = None
 
     @property
     def plate(self):
@@ -441,3 +442,10 @@ class ExpandedRentedCar:
     @date.setter
     def date(self, value):
         self.__date = value
+
+    @property
+    def entity(self): return self.__entity
+
+    @entity.setter
+    def entity(self, value):
+        self.__entity = value
