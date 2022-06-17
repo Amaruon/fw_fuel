@@ -25,7 +25,6 @@ class Sql:
                 host='localhost',
                 port=5432
             )
-            print("Connection was successful")
             self.__cursor = self._conn.cursor()
         except Exception as Err:
             print(f'Error while connecting: {Err}')
@@ -169,7 +168,7 @@ class PostgresApi:
     def fetch_rented_cars(self, l_day, month):
 
         array = self.db.fetch_query(f'''
-            SELECT plate, rent_start, rent_end FROM rented_car
+            SELECT plate, rent_start, rent_end, entity FROM rented_car
             WHERE rent_start >= '{datetime.date(2022, month, 1)}' and 
             rent_end <= '{datetime.date(2022, month, l_day)}'
             ORDER BY rent_start
@@ -197,7 +196,6 @@ class PostgresApi:
             WHERE plate = '{plate}'
             ORDER BY plate, date DESC
         ''')
-        print(plate)
         while True:
             try:
                 fuel_end = str(fuel_end[0])
@@ -261,4 +259,13 @@ class PostgresApi:
             left join car c on c.plate = wb.car;
         ''')
 
+        return result
+
+    def fetch_invoice_data(self):
+        result = self.db.fetch_query(f'''
+            SELECT extract(month from wb.date), fc.entity, concat(c.model, ' (', wb.car, ')'), 
+            c.fuel, fc.liters, fc.price, fc.total_price from way_bill wb
+            left join fuel_card fc on wb.card_number = fc.card_number and wb.date = fc.date
+            left join car c on c.plate = wb.car
+        ''')
         return result

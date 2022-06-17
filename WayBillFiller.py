@@ -47,6 +47,7 @@ class WayBillFiller:
 
     @staticmethod
     def assign_driver(row, drivers):
+        not_working = ['Отпуск неоплачиваемый с разрешения работодателя', 'Отпуск', 'Больничный']
         # exclude high refills
         if row.fuel == 'АИ-95' and row.fuel_get >= 60:
             return ['To tank', drivers]
@@ -57,7 +58,8 @@ class WayBillFiller:
                 row.entity = 'ОП "Каменск-Красносулинский"'
             for driver in drivers[:]:
                 if isinstance(driver, TimeSheetRow) and driver.date == row.date \
-                        and driver.entity == row.entity and row.card_number != '0':
+                        and driver.entity == row.entity and row.card_number != '0'\
+                        and driver.type_of_time not in not_working:
                     drivers.remove(driver)
                     return [driver.acronym, drivers]
             return ['To tank', drivers]
@@ -79,7 +81,7 @@ class WayBillFiller:
     def assign_cars(self, row, cars):
         for car in cars[:]:
             if row.fuel == ''.join(self.db.fetch_fuel_type(car.plate)) and row.date == car.date\
-                    and row.entity == car.entity:
+                    and row.entity == car.entity.rstrip():
                 cars.remove(car)
                 return [car.plate, cars]
             else:
@@ -87,8 +89,7 @@ class WayBillFiller:
         return ['No car', cars]
 
     def fuel_start(self, plate):    # work on it
-        fuel_start = self.db.fetch_fuel_end(plate)
-        return rd.uniform(40.000, 50.000) if fuel_start == 0 else fuel_start
+        return self.db.fetch_fuel_end(plate)
 
     def mileage_start(self, plate):
         mileage_start = self.db.fetch_mileage_end(plate)
@@ -129,8 +130,12 @@ class WayBillFiller:
                 item = MileageFuelEnd()
                 item.date = row.date
                 row.fuel = self.change_fuel_naming(row)
-                row.driver, drivers = self.assign_driver(row, drivers)
+
+                if row.entity == 'Оп "Кольская"':
+                    row.entity = 'ОП "Каменск-Красносулинский"'
+
                 row.car, cars = self.assign_cars(row, cars)
+                row.driver, drivers = self.assign_driver(row, drivers)
                 if row.driver == 'To tank' or row.car == 'No car':
                     continue
                 else:
